@@ -1,0 +1,5 @@
+export const RED   = '#CE1126'
+export const WHITE = '#CE1126'
+export const NAVY  = '#CE1126'
+export const GOLD  = '#c49a20'
+export const DARK  = '#8B0000'

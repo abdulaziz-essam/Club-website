@@ -32,10 +32,10 @@ export default function SectionCard({ section, index, total, focusedIndex, onCli
         pointerEvents: isUnfocused ? 'none' : 'auto',
         zIndex: isFocused ? 100 : hovered ? 10 : total - Math.abs(Math.round(offset)),
         boxShadow: isFocused
-          ? `0 40px 80px ${section.glow}, 0 0 0 2px rgba(255,255,255,0.8)`
+          ? `0 40px 80px ${section.glow}, 0 0 0 1.5px rgba(206,17,38,0.7)`
           : hovered
-          ? `0 28px 60px ${section.glow}, 0 0 0 2px rgba(255,255,255,0.65)`
-          : `0 8px 28px rgba(0,0,0,0.55), 0 0 0 1.5px rgba(255,255,255,0.1)`,
+          ? `0 28px 60px ${section.glow}, 0 0 0 1.5px rgba(206,17,38,0.45)`
+          : `0 8px 28px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.06)`,
         transition: 'opacity 0.5s ease, box-shadow 0.3s ease',
       }}
       onMouseEnter={() => { if (!isFocused) setHovered(true) }}

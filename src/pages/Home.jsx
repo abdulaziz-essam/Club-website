@@ -1,12 +1,19 @@
 import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { SECTIONS } from '../constants/sections'
-import AmbientBlobs from '../components/AmbientBlobs'
+import FootballBackground from '../components/FootballBackground'
+import IntroOverlay from '../components/IntroOverlay'
 import Navbar from '../components/Navbar'
 import SectionCard from '../components/SectionCard'
 
+const HISTORY_INDEX = SECTIONS.findIndex(s => s.id === 'history')
+
 export default function Home() {
+  const navigate = useNavigate()
+  const [intro, setIntro]               = useState(true)
   const [focusedIndex, setFocusedIndex] = useState(null)
-  const rowRef = useRef(null)
+  const [enterVisible, setEnterVisible] = useState(false)
+  const rowRef  = useRef(null)
   const tiltRef = useRef(0)
 
   // Mouse tilt — disabled when focused
@@ -23,7 +30,7 @@ export default function Home() {
     return () => window.removeEventListener('mousemove', onMove)
   }, [focusedIndex])
 
-  // When unfocusing, restore row tilt
+  // Restore row tilt when unfocusing
   useEffect(() => {
     if (!rowRef.current) return
     if (focusedIndex === null) {
@@ -32,15 +39,34 @@ export default function Home() {
     }
   }, [focusedIndex])
 
+  // Show "Enter History" button after the focus animation settles
+  useEffect(() => {
+    if (focusedIndex === HISTORY_INDEX) {
+      const t = setTimeout(() => setEnterVisible(true), 420)
+      return () => clearTimeout(t)
+    } else {
+      setEnterVisible(false)
+    }
+  }, [focusedIndex])
+
   return (
-    <div className="w-screen h-screen relative overflow-hidden bg-[#0f1117]">
-      <AmbientBlobs />
+    <div className="w-screen h-screen relative overflow-hidden" style={{ background: '#0c0004' }}>
+      <FootballBackground />
+
+      {intro && <IntroOverlay onDone={() => setIntro(false)} />}
+
       <Navbar />
 
-      {/* 3D Gallery */}
+      {/* 3D Gallery — slides up after intro */}
       <div
         className="absolute inset-0 flex items-center justify-center"
-        style={{ perspective: '1100px', perspectiveOrigin: '50% 46%' }}
+        style={{
+          perspective: '1100px',
+          perspectiveOrigin: '50% 46%',
+          opacity: intro ? 0 : 1,
+          transform: intro ? 'translateY(40px)' : 'translateY(0)',
+          transition: 'opacity 0.9s ease 0.2s, transform 0.9s cubic-bezier(0.25,0.46,0.45,0.94) 0.2s',
+        }}
       >
         <div
           ref={rowRef}
@@ -63,11 +89,48 @@ export default function Home() {
       {/* Floor fade */}
       <div
         className="absolute bottom-0 left-0 right-0 h-[38%] pointer-events-none"
-        style={{ background: 'linear-gradient(to bottom, transparent, rgba(8,8,16,0.96))' }}
+        style={{ background: 'linear-gradient(to bottom, transparent, rgba(6,0,10,0.97))' }}
       />
 
-      {/* Back button */}
-      {focusedIndex !== null && (
+      {/* Enter History button — only when History card is focused */}
+      {!intro && enterVisible && focusedIndex === HISTORY_INDEX && (
+        <button
+          onClick={() => navigate('/history')}
+          style={{
+            position: 'fixed',
+            bottom: 96,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 300,
+            padding: '11px 36px',
+            fontFamily: "'Russo One', sans-serif",
+            fontSize: 11,
+            letterSpacing: '0.25em',
+            textTransform: 'uppercase',
+            color: '#ffffff',
+            background: 'linear-gradient(135deg, #CE1126, #8B0000)',
+            border: 'none',
+            borderRadius: 2,
+            cursor: 'pointer',
+            boxShadow: '0 0 32px rgba(206,17,38,0.55), 0 4px 16px rgba(0,0,0,0.4)',
+            animation: 'slideUp 0.28s cubic-bezier(0.34,1.4,0.64,1) forwards',
+            transition: 'box-shadow 0.25s ease, filter 0.25s ease',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.boxShadow = '0 0 48px rgba(206,17,38,0.8), 0 4px 20px rgba(0,0,0,0.5)'
+            e.currentTarget.style.filter = 'brightness(1.1)'
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.boxShadow = '0 0 32px rgba(206,17,38,0.55), 0 4px 16px rgba(0,0,0,0.4)'
+            e.currentTarget.style.filter = 'brightness(1)'
+          }}
+        >
+          Enter History →
+        </button>
+      )}
+
+      {/* Back button — shown when any card is focused */}
+      {!intro && focusedIndex !== null && (
         <button
           onClick={() => setFocusedIndex(null)}
           className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[200] px-8 py-3 text-[11px] tracking-[0.3em] uppercase text-white/70 border border-white/20 rounded-sm hover:text-white hover:border-white/50 transition-all duration-300"
@@ -77,7 +140,7 @@ export default function Home() {
         </button>
       )}
 
-      {focusedIndex === null && (
+      {!intro && focusedIndex === null && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 text-[9px] tracking-[0.45em] uppercase text-white/20 pointer-events-none">
           Move mouse to tilt · Click to enter
         </div>
